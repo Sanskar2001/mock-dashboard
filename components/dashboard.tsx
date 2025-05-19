@@ -24,6 +24,8 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import { CheckboxGroup, Checkbox } from "@/components/ui/checkbox";
+import { AuthSummaryTable } from "@/components/auth-summary-table";
 
 // Add interface for bot responses
 interface MetricBotResponse {
@@ -155,6 +157,9 @@ const authSuccessData = [
 ];
 
 const dropOffData = [
+  { date: "Jan 1", Desktop: 2.3, Mobile: 5.4, Tablet: 3.7 },
+  { date: "Jan 2", Desktop: 2.1, Mobile: 5.2, Tablet: 3.5 },
+  { date: "Jan 3", Desktop: 2.5, Mobile: 5.7, Tablet: 4.1 },
   { date: "7. May", Desktop: 5.2, Mobile: 8.5, Tablet: 7.1 },
   { date: "8. May", Desktop: 5.0, Mobile: 8.2, Tablet: 6.9 },
   { date: "9. May", Desktop: 4.8, Mobile: 7.9, Tablet: 6.7 },
@@ -552,6 +557,85 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState<MetricBotResponse | null>(null);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([
+    "Web",
+    "iOS",
+    "Android",
+  ]);
+
+  // Add state for device types
+  const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([
+    "Desktop",
+    "Mobile",
+    "Tablet",
+  ]);
+
+  // Update the filterDataByPlatform function to correctly handle device types
+  const filterDataByPlatform = (data: any[], platformKeys: string[]) => {
+    // Check if these are device type keys (Desktop, Mobile, Tablet)
+    const isDeviceTypeData = platformKeys.some((key) =>
+      ["Desktop", "Mobile", "Tablet"].includes(key)
+    );
+
+    // Check if these are platform keys (Web, iOS, Android)
+    const isPlatformData = platformKeys.some((key) =>
+      ["Web", "iOS", "Android"].includes(key)
+    );
+
+    // Apply the appropriate filter based on data type
+    const filteredKeys = platformKeys.filter((key) => {
+      if (isPlatformData && ["Web", "iOS", "Android"].includes(key)) {
+        return selectedPlatforms.includes(key);
+      }
+      if (isDeviceTypeData && ["Desktop", "Mobile", "Tablet"].includes(key)) {
+        return selectedDeviceTypes.includes(key);
+      }
+      return true;
+    });
+
+    console.log("Filtering", {
+      isDeviceTypeData,
+      isPlatformData,
+      platformKeys,
+      filteredKeys,
+      selectedDeviceTypes,
+      selectedPlatforms,
+    });
+
+    // Create a new colors array with proper mapping
+    const getFilteredColors = (originalColors: string[]) => {
+      if (isPlatformData || isDeviceTypeData) {
+        // For platform-specific or device-type charts, map colors to selected items
+        return filteredKeys.map((key) => {
+          const originalIndex = platformKeys.findIndex((k) => k === key);
+          return originalIndex >= 0 ? originalColors[originalIndex] : "#000000";
+        });
+      }
+      // For non-platform/device charts, use original colors
+      return originalColors;
+    };
+
+    // Return structured data for rendering
+    return {
+      data: data,
+      dataKeys: filteredKeys,
+      colors: (originalColors: string[]) => getFilteredColors(originalColors),
+    };
+  };
+
+  // Function to handle platform selection changes
+  const handlePlatformChange = (platforms: string[]) => {
+    setSelectedPlatforms(
+      platforms.length ? platforms : ["Web", "iOS", "Android"]
+    );
+  };
+
+  // Add handler for device type changes
+  const handleDeviceTypeChange = (deviceTypes: string[]) => {
+    setSelectedDeviceTypes(
+      deviceTypes.length ? deviceTypes : ["Desktop", "Mobile", "Tablet"]
+    );
+  };
 
   // Add function to handle quick action clicks
   const handleQuickAction = (query: string) => {
@@ -610,7 +694,13 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <FilterBar />
+          <FilterBar
+            selectedPlatforms={selectedPlatforms}
+            onPlatformChange={handlePlatformChange}
+            selectedDeviceTypes={selectedDeviceTypes}
+            onDeviceTypeChange={handleDeviceTypeChange}
+          />
+
           <MetricsCards />
 
           <Card>
@@ -632,9 +722,19 @@ export default function Dashboard() {
             <ReusableChart
               title="Authentication Success"
               subtitle="Breakdown of authentication success rates by platform"
-              data={authSuccessData}
-              dataKeys={["Web", "iOS", "Android"]}
-              colors={["#4299E1", "#10B981", "#F59E0B"]}
+              data={
+                filterDataByPlatform(authSuccessData, ["Web", "iOS", "Android"])
+                  .data
+              }
+              dataKeys={
+                filterDataByPlatform(authSuccessData, ["Web", "iOS", "Android"])
+                  .dataKeys
+              }
+              colors={filterDataByPlatform(authSuccessData, [
+                "Web",
+                "iOS",
+                "Android",
+              ]).colors(["#4299E1", "#10B981", "#F59E0B"])}
               valueFormatter={(value) => `${value}%`}
               yAxisDomain={[80, 100]}
               yAxisTicks={[80, 85, 90, 95, 100]}
@@ -642,9 +742,25 @@ export default function Dashboard() {
             <ReusableChart
               title="User Drop-off Rate"
               subtitle="Breakdown of user drop-off rates by device type"
-              data={dropOffData}
-              dataKeys={["Desktop", "Mobile", "Tablet"]}
-              colors={["#8B5CF6", "#EC4899", "#F97316"]}
+              data={
+                filterDataByPlatform(dropOffData, [
+                  "Desktop",
+                  "Mobile",
+                  "Tablet",
+                ]).data
+              }
+              dataKeys={
+                filterDataByPlatform(dropOffData, [
+                  "Desktop",
+                  "Mobile",
+                  "Tablet",
+                ]).dataKeys
+              }
+              colors={filterDataByPlatform(dropOffData, [
+                "Desktop",
+                "Mobile",
+                "Tablet",
+              ]).colors(["#8B5CF6", "#EC4899", "#F97316"])}
               valueFormatter={(value) => `${value}%`}
               yAxisDomain={[0, 10]}
               yAxisTicks={[0, 2, 4, 6, 8, 10]}
@@ -652,29 +768,62 @@ export default function Dashboard() {
             <ReusableChart
               title="Exemption Approval Rate by Issuer"
               subtitle="Breakdown of exemption approval rates by issuer"
-              data={approvalData}
-              dataKeys={[
+              data={
+                filterDataByPlatform(approvalData, [
+                  "Wells Fargo",
+                  "HDFC",
+                  "JPMorgan Chase",
+                  "Bank of America",
+                ]).data
+              }
+              dataKeys={
+                filterDataByPlatform(approvalData, [
+                  "Wells Fargo",
+                  "HDFC",
+                  "JPMorgan Chase",
+                  "Bank of America",
+                ]).dataKeys
+              }
+              colors={filterDataByPlatform(approvalData, [
                 "Wells Fargo",
                 "HDFC",
                 "JPMorgan Chase",
                 "Bank of America",
-              ]}
-              colors={["#EF4444", "#6366F1", "#06B6D4", "#D946EF"]}
+              ]).colors(["#EF4444", "#6366F1", "#06B6D4", "#D946EF"])}
               valueFormatter={(value) => `${value}%`}
               yAxisDomain={[50, 85]}
               yAxisTicks={[50, 60, 70, 80]}
             />
-
             <ReusableChart
               title="Exemption Request Rate by Type"
               subtitle="Breakdown of exemption request rates by type"
-              data={exemptionData}
-              dataKeys={["LowValue", "Merchant", "TRA"]}
-              colors={["#84CC16", "#14B8A6", "#F43F5E"]}
+              data={
+                filterDataByPlatform(exemptionData, [
+                  "LowValue",
+                  "Merchant",
+                  "TRA",
+                ]).data
+              }
+              dataKeys={
+                filterDataByPlatform(exemptionData, [
+                  "LowValue",
+                  "Merchant",
+                  "TRA",
+                ]).dataKeys
+              }
+              colors={filterDataByPlatform(exemptionData, [
+                "LowValue",
+                "Merchant",
+                "TRA",
+              ]).colors(["#84CC16", "#14B8A6", "#F43F5E"])}
               valueFormatter={(value) => `${value}%`}
               yAxisDomain={[30, 90]}
               yAxisTicks={[30, 45, 60, 75, 90]}
             />
+          </div>
+
+          <div className="mt-6">
+            <AuthSummaryTable />
           </div>
         </div>
       </div>
