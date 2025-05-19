@@ -568,7 +568,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           <ReusableChart
-            title="Authentication Success Rate by Platform"
+            title="Authentication Success"
             subtitle="Breakdown of authentication success rates by platform"
             data={authSuccessData}
             dataKeys={["Web", "iOS", "Android"]}
@@ -578,7 +578,7 @@ export default function Dashboard() {
             yAxisTicks={[80, 85, 90, 95, 100]}
           />
           <ReusableChart
-            title="User Drop-off Rate by Device Type"
+            title="User Drop-off Rate"
             subtitle="Breakdown of user drop-off rates by device type"
             data={dropOffData}
             dataKeys={["Desktop", "Mobile", "Tablet"]}
