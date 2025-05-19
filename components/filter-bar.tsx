@@ -213,7 +213,7 @@ export function FilterBar() {
         {
           id: "issuer_id",
           name: "Issuer ID",
-          options: ["ISS001", "ISS002", "ISS003"],
+          options: ["Wells Fargo", "HDFC", "JPMorgan Chase", "Bank of America"],
         },
         {
           id: "scheme_name",

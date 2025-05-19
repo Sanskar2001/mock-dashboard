@@ -167,15 +167,69 @@ const dropOffData = [
 ];
 
 const approvalData = [
-  { date: "7. May", Visa: 72, Mastercard: 68, Amex: 62, Discover: 58 },
-  { date: "8. May", Visa: 73, Mastercard: 69, Amex: 63, Discover: 59 },
-  { date: "9. May", Visa: 74, Mastercard: 70, Amex: 64, Discover: 60 },
-  { date: "10. May", Visa: 76, Mastercard: 72, Amex: 66, Discover: 62 },
-  { date: "11. May", Visa: 77, Mastercard: 73, Amex: 67, Discover: 63 },
-  { date: "12. May", Visa: 78, Mastercard: 74, Amex: 68, Discover: 64 },
-  { date: "13. May", Visa: 79, Mastercard: 75, Amex: 69, Discover: 65 },
-  { date: "14. May", Visa: 80, Mastercard: 76, Amex: 70, Discover: 66 },
-  { date: "15. May", Visa: 81, Mastercard: 77, Amex: 71, Discover: 67 },
+  {
+    date: "7. May",
+    "Wells Fargo": 72,
+    HDFC: 68,
+    "JPMorgan Chase": 62,
+    "Bank of America": 58,
+  },
+  {
+    date: "8. May",
+    "Wells Fargo": 73,
+    HDFC: 69,
+    "JPMorgan Chase": 63,
+    "Bank of America": 59,
+  },
+  {
+    date: "9. May",
+    "Wells Fargo": 74,
+    HDFC: 70,
+    "JPMorgan Chase": 64,
+    "Bank of America": 60,
+  },
+  {
+    date: "10. May",
+    "Wells Fargo": 76,
+    HDFC: 72,
+    "JPMorgan Chase": 66,
+    "Bank of America": 62,
+  },
+  {
+    date: "11. May",
+    "Wells Fargo": 77,
+    HDFC: 73,
+    "JPMorgan Chase": 67,
+    "Bank of America": 63,
+  },
+  {
+    date: "12. May",
+    "Wells Fargo": 78,
+    HDFC: 74,
+    "JPMorgan Chase": 68,
+    "Bank of America": 64,
+  },
+  {
+    date: "13. May",
+    "Wells Fargo": 79,
+    HDFC: 75,
+    "JPMorgan Chase": 69,
+    "Bank of America": 65,
+  },
+  {
+    date: "14. May",
+    "Wells Fargo": 80,
+    HDFC: 76,
+    "JPMorgan Chase": 70,
+    "Bank of America": 66,
+  },
+  {
+    date: "15. May",
+    "Wells Fargo": 81,
+    HDFC: 77,
+    "JPMorgan Chase": 71,
+    "Bank of America": 67,
+  },
 ];
 
 const exemptionData = [
@@ -414,7 +468,9 @@ const ReusableChart = ({
               {dataKeys.map((key, index) => (
                 <linearGradient
                   key={key}
-                  id={`color${key}`}
+                  id={`color-${index}-${key
+                    .replace(/\s+/g, "-")
+                    .toLowerCase()}`}
                   x1="0"
                   y1="0"
                   x2="0"
@@ -469,7 +525,9 @@ const ReusableChart = ({
                 name={key}
                 stroke={colors[index]}
                 fillOpacity={1}
-                fill={`url(#color${key})`}
+                fill={`url(#color-${index}-${key
+                  .replace(/\s+/g, "-")
+                  .toLowerCase()})`}
                 strokeWidth={1.5}
                 dot={{ r: 3, strokeWidth: 1 }}
                 activeDot={{ r: 4, strokeWidth: 0 }}
@@ -554,6 +612,7 @@ export default function Dashboard() {
 
           <FilterBar />
           <MetricsCards />
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg font-medium">
@@ -567,46 +626,56 @@ export default function Dashboard() {
               <SankeyChart />
             </CardContent>
           </Card>
-          <ReusableChart
-            title="Authentication Success"
-            subtitle="Breakdown of authentication success rates by platform"
-            data={authSuccessData}
-            dataKeys={["Web", "iOS", "Android"]}
-            colors={["#4299E1", "#10B981", "#F59E0B"]}
-            valueFormatter={(value) => `${value}%`}
-            yAxisDomain={[80, 100]}
-            yAxisTicks={[80, 85, 90, 95, 100]}
-          />
-          <ReusableChart
-            title="User Drop-off Rate"
-            subtitle="Breakdown of user drop-off rates by device type"
-            data={dropOffData}
-            dataKeys={["Desktop", "Mobile", "Tablet"]}
-            colors={["#8B5CF6", "#EC4899", "#F97316"]}
-            valueFormatter={(value) => `${value}%`}
-            yAxisDomain={[0, 10]}
-            yAxisTicks={[0, 2, 4, 6, 8, 10]}
-          />
-          <ReusableChart
-            title="Exemption Approval Rate by Issuer"
-            subtitle="Breakdown of exemption approval rates by issuer"
-            data={approvalData}
-            dataKeys={["Visa", "Mastercard", "Amex", "Discover"]}
-            colors={["#EF4444", "#6366F1", "#06B6D4", "#D946EF"]}
-            valueFormatter={(value) => `${value}%`}
-            yAxisDomain={[50, 85]}
-            yAxisTicks={[50, 60, 70, 80]}
-          />
-          <ReusableChart
-            title="Exemption Request Rate by Type"
-            subtitle="Breakdown of exemption request rates by type"
-            data={exemptionData}
-            dataKeys={["LowValue", "Merchant", "TRA"]}
-            colors={["#84CC16", "#14B8A6", "#F43F5E"]}
-            valueFormatter={(value) => `${value}%`}
-            yAxisDomain={[30, 90]}
-            yAxisTicks={[30, 45, 60, 75, 90]}
-          />
+
+          {/* Grid layout for side-by-side charts */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ReusableChart
+              title="Authentication Success"
+              subtitle="Breakdown of authentication success rates by platform"
+              data={authSuccessData}
+              dataKeys={["Web", "iOS", "Android"]}
+              colors={["#4299E1", "#10B981", "#F59E0B"]}
+              valueFormatter={(value) => `${value}%`}
+              yAxisDomain={[80, 100]}
+              yAxisTicks={[80, 85, 90, 95, 100]}
+            />
+            <ReusableChart
+              title="User Drop-off Rate"
+              subtitle="Breakdown of user drop-off rates by device type"
+              data={dropOffData}
+              dataKeys={["Desktop", "Mobile", "Tablet"]}
+              colors={["#8B5CF6", "#EC4899", "#F97316"]}
+              valueFormatter={(value) => `${value}%`}
+              yAxisDomain={[0, 10]}
+              yAxisTicks={[0, 2, 4, 6, 8, 10]}
+            />
+            <ReusableChart
+              title="Exemption Approval Rate by Issuer"
+              subtitle="Breakdown of exemption approval rates by issuer"
+              data={approvalData}
+              dataKeys={[
+                "Wells Fargo",
+                "HDFC",
+                "JPMorgan Chase",
+                "Bank of America",
+              ]}
+              colors={["#EF4444", "#6366F1", "#06B6D4", "#D946EF"]}
+              valueFormatter={(value) => `${value}%`}
+              yAxisDomain={[50, 85]}
+              yAxisTicks={[50, 60, 70, 80]}
+            />
+
+            <ReusableChart
+              title="Exemption Request Rate by Type"
+              subtitle="Breakdown of exemption request rates by type"
+              data={exemptionData}
+              dataKeys={["LowValue", "Merchant", "TRA"]}
+              colors={["#84CC16", "#14B8A6", "#F43F5E"]}
+              valueFormatter={(value) => `${value}%`}
+              yAxisDomain={[30, 90]}
+              yAxisTicks={[30, 45, 60, 75, 90]}
+            />
+          </div>
         </div>
       </div>
     </div>
